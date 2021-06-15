@@ -34,7 +34,7 @@
           <template #title>
             最大风险额度（{{ configData.dangerRatio }}%）：{{ maxBuyLimit }}
           </template>
-          建议最大买入额：{{ formData.maxBuy }}
+          <span @click="handleSetInteger">建议最大买入额：{{ formData.maxBuy }}</span>
         </cell>
         <cell title="" value-class="item-detail">
           <template #title> 购买数量 </template>
@@ -94,44 +94,37 @@
               type="danger"
               round
               size="mini"
-              @click="handleSimplePreview(-20)"
-              >-20%</Button
-            >
-            <Button
-              type="danger"
-              round
-              size="mini"
-              @click="handleSimplePreview(-10)"
-              >-10%</Button
-            >
-            <Button
-              type="danger"
-              round
-              size="mini"
               @click="handleSimplePreview(-5)"
               >-5%</Button
+            >
+            <Button
+              type="primary"
+              round
+              size="mini"
+              @click="handleSimplePreview(5)"
+              >5%</Button
             >
           </template>
           <Button
             type="primary"
             round
             size="mini"
-            @click="handleSimplePreview(5)"
-            >5%</Button
+            @click="handleRatioPreview(1)"
+            >盈亏比1:1</Button
           >
           <Button
             type="primary"
             round
             size="mini"
-            @click="handleSimplePreview(10)"
-            >10%</Button
+            @click="handleRatioPreview(1.5)"
+            >盈亏比1.5:1</Button
           >
           <Button
             type="primary"
             round
             size="mini"
-            @click="handleSimplePreview(20)"
-            >20%</Button
+            @click="handleRatioPreview(2)"
+            >盈亏比2:1</Button
           >
         </cell>
         <cell title="" value-class="item-detail">
@@ -264,6 +257,7 @@ export default {
       Toast("取消");
     },
     onSubmit() {},
+    // 比例调整预览盈亏
     handleSimplePreview(ratio) {
       const price = this.configData.previewPrice * (1 + ratio * 0.01);
       this.configData.previewPrice = Number(price.toFixed(2));
@@ -283,6 +277,14 @@ export default {
     handleResetPreview() {
       this.configData.previewPrice = Number(this.formData.enterPrice);
     },
+    handleSetInteger() {
+      
+    },
+    // 盈亏比预览
+    handleRatioPreview(ratio) {
+      const previewPrice = ratio * (this.formData.enterPrice - this.formData.dangerPrice) + Number(this.formData.enterPrice);
+      this.configData.previewPrice = Number(previewPrice.toFixed(2));
+    }
   },
 };
 </script>
