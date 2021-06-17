@@ -23,8 +23,11 @@
         />
         <field name="slider" label="风控买入额">
           <template #input>
+            <!-- 区分 多/空 模式 -->
             <slider
-              :max="maxOnceDangerLimit"
+              :max="
+                isShortMode ? maxOnceDangerLimitForShort : maxOnceDangerLimit
+              "
               step="5"
               v-model="formData.maxBuy"
             />
@@ -34,7 +37,9 @@
           <template #title>
             最大风险额度（{{ configData.dangerRatio }}%）：{{ maxBuyLimit }}
           </template>
-          <span @click="handleSetInteger">建议最大买入额：{{ formData.maxBuy }}</span>
+          <span @click="handleSetInteger"
+            >建议最大买入额：{{ formData.maxBuy }}</span
+          >
         </cell>
         <cell title="" value-class="item-detail">
           <template #title> 购买数量 </template>
@@ -140,6 +145,7 @@
         </cell>
         <cell title="" value-class="item-detail">
           <template #title> 预览盈亏 </template>
+          <!-- 盈亏预览： （预览价-入场价）/ （入场价-止损价） -->
           <span class="win-ratio"
             >盈亏比({{
               (
@@ -202,15 +208,29 @@ export default {
     };
   },
   computed: {
-    // 最大买入额
+    // 做空模式
+    isShortMode() {
+      return this.formData.dangerPrice > this.formData.enterPrice;
+    },
+    // 最大风险额
     maxBuyLimit() {
       return (this.configData.moneyTotal * this.configData.dangerRatio) / 100;
     },
-    // 单笔最大风险金额限制
+    // 建议单笔最大风险买入额度
+    // * (单笔最大风险额度/(入场价-止损价)) * 入场价
     maxOnceDangerLimit() {
       return (
         (this.maxBuyLimit /
           (this.formData.enterPrice - this.formData.dangerPrice)) *
+        this.formData.enterPrice
+      ).toFixed(2);
+    },
+    // 单笔最大风险金额限制(空)
+    // * (单笔最大风险额度/(入场价-止损价)) * 入场价
+    maxOnceDangerLimitForShort() {
+      return (
+        (this.maxBuyLimit /
+          (this.formData.dangerPrice - this.formData.enterPrice)) *
         this.formData.enterPrice
       ).toFixed(2);
     },
@@ -277,14 +297,14 @@ export default {
     handleResetPreview() {
       this.configData.previewPrice = Number(this.formData.enterPrice);
     },
-    handleSetInteger() {
-      
-    },
+    handleSetInteger() {},
     // 盈亏比预览
     handleRatioPreview(ratio) {
-      const previewPrice = ratio * (this.formData.enterPrice - this.formData.dangerPrice) + Number(this.formData.enterPrice);
+      const previewPrice =
+        ratio * (this.formData.enterPrice - this.formData.dangerPrice) +
+        Number(this.formData.enterPrice);
       this.configData.previewPrice = Number(previewPrice.toFixed(2));
-    }
+    },
   },
 };
 </script>
