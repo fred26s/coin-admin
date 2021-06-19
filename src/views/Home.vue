@@ -6,7 +6,8 @@
         <cell title="" size="large">
           <template #title>实时价格</template>
           {{ configData.currentPrice }}
-          <template #label>{{ formData.coinName }}</template>
+
+          <template #label>{{ formData.coinName }} </template>
         </cell>
         <field
           v-model="formData.enterPrice"
@@ -20,7 +21,18 @@
           name="止损价位"
           label="止损价位"
           placeholder="止损价位"
-        />
+        >
+          <template #button>
+            <span class="short-tips">{{
+              formData.shortMode ? "做空" : "做多"
+            }}</span>
+            <van-switch
+              v-model="formData.shortMode"
+              active-color="#ee0a24"
+              size="16px"
+            />
+          </template>
+        </field>
         <field name="slider" label="风控买入额">
           <template #input>
             <!-- 区分 多/空 模式 -->
@@ -179,15 +191,35 @@
 </template>
 
 <script>
-import { Button, Popup, Picker, Toast, Form, Field, Slider, Cell } from "vant";
+import {
+  Button,
+  Popup,
+  Picker,
+  Toast,
+  Form,
+  Field,
+  Slider,
+  Cell,
+  Switch,
+} from "vant";
 
 export default {
   name: "Home",
-  components: { Button, Popup, Picker, Form, Field, Slider, Cell },
+  components: {
+    Button,
+    Popup,
+    Picker,
+    Form,
+    Field,
+    Slider,
+    Cell,
+    "van-switch": Switch,
+  },
   data() {
     return {
       visibleCoin: false,
       formData: {
+        shortMode: false, // 做空模式
         dangerPrice: "",
         enterPrice: "",
         maxBuy: 0,
@@ -210,7 +242,8 @@ export default {
   computed: {
     // 做空模式
     isShortMode() {
-      return this.formData.dangerPrice > this.formData.enterPrice;
+      // return this.formData.dangerPrice > this.formData.enterPrice;
+      return this.formData.shortMode;
     },
     // 最大风险额
     maxBuyLimit() {
@@ -237,12 +270,17 @@ export default {
     amount() {
       return (this.formData.maxBuy / this.formData.enterPrice).toFixed(3) || 0;
     },
+    // 盈亏预览金额
+    // * (预览金额/入场价 - 1) * 入场价 * 实际购买数量
+    // * (盈亏比例) * 入场价 * 数量
+    //
     previewWin() {
-      return (
+      const data = (
         (this.configData.previewPrice / this.formData.enterPrice - 1) *
         this.formData.enterPrice *
         this.formData.amount
       ).toFixed(2);
+      return this.isShortMode ? -data : data;
     },
   },
   created() {
@@ -328,5 +366,10 @@ export default {
 }
 .win-ratio {
   margin-right: 10px;
+}
+.short-tips {
+  position: relative;
+  top: -4px;
+  margin-right: 5px;
 }
 </style>
